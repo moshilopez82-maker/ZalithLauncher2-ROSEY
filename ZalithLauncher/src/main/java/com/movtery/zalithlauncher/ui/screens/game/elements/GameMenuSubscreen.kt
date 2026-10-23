@@ -117,7 +117,8 @@ fun GameMenuSubscreen(
     onSendKeycode: () -> Unit,
     onReplacementControl: () -> Unit,
     onEditLayout: () -> Unit,
-    onShowToast: (AndroidStringText, Int) -> Unit
+    onShowToast: (AndroidStringText, Int) -> Unit,
+    onOpenRoseyBrowser: () -> Unit
 ) {
     DualMenuSubscreen(
         state = state,
@@ -198,7 +199,8 @@ fun GameMenuSubscreen(
                 enableTerracotta = enableTerracotta,
                 onOpenTerracottaMenu = onOpenTerracottaMenu,
                 onRefreshWindowSize = onRefreshWindowSize,
-                onShowToast = onShowToast
+                onShowToast = onShowToast,
+                onOpenRoseyBrowser = onOpenRoseyBrowser
             )
         }
     )
@@ -212,6 +214,7 @@ private fun GameActionContent(
     onOpenTerracottaMenu: () -> Unit,
     onRefreshWindowSize: () -> Unit,
     onShowToast: (AndroidStringText, Int) -> Unit,
+    onOpenRoseyBrowser: () -> Unit,
     modifier: Modifier = Modifier,
     color: Color = cardColor(false),
     contentColor: Color = onCardColor(),
@@ -240,6 +243,17 @@ private fun GameActionContent(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.game_menu_option_switch_log),
                 onClick = onSwitchLog,
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+
+        // Rosey Browser
+        item {
+            MenuTextButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Open Rosey Browser",
+                onClick = onOpenRoseyBrowser,
                 color = color,
                 contentColor = contentColor,
             )
