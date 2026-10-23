@@ -2,7 +2,6 @@ package com.movtery.zalithlauncher.ui.components
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import android.net.Uri
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -15,12 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.weight
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,10 +28,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -47,32 +42,17 @@ fun RoseyWebViewOverlay(
     val context = LocalContext.current
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
 
-    var address by remember { mutableStateOf(initialUrl) }
     var loading by remember { mutableStateOf(false) }
     var progress by remember { mutableIntStateOf(0) }
     var canGoBack by remember { mutableStateOf(false) }
     var canGoForward by remember { mutableStateOf(false) }
 
-    fun navigate() {
-        val input = address.trim()
-        if (input.isEmpty()) return
-
-        val target = when {
-            input.startsWith("https://", true) ||
-                input.startsWith("http://", true) ||
-                input.startsWith("file://", true) ||
-                input == "about:blank" -> input
-            input.any { it.isWhitespace() } ->
-                "https://www.google.com/search?q=${Uri.encode(input)}"
-            else -> "https://$input"
-        }
-
-        address = target
-        webViewRef.value?.loadUrl(target)
-    }
-
-    Surface(
-        modifier = Modifier.fillMaxSize(),
+    Dialog(
+        onDismissRequest = onClose,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp
     ) {
@@ -82,32 +62,6 @@ fun RoseyWebViewOverlay(
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(8.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                OutlinedTextField(
-                    value = address,
-                    onValueChange = { address = it },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    label = { Text("Website or search") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Uri,
-                        imeAction = ImeAction.Go
-                    ),
-                    keyboardActions = KeyboardActions(onGo = { navigate() })
-                )
-
-                Button(onClick = { navigate() }) {
-                    Text("Go")
-                }
-
-                TextButton(onClick = onClose) {
-                    Text("Close")
-                }
-            }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -127,6 +81,8 @@ fun RoseyWebViewOverlay(
                 TextButton(
                     onClick = { webViewRef.value?.reload() }
                 ) { Text("Reload") }
+
+                TextButton(onClick = onClose) { Text("Close") }
             }
 
             if (loading) {
@@ -152,7 +108,6 @@ fun RoseyWebViewOverlay(
                                 url: String?,
                                 favicon: Bitmap?
                             ) {
-                                address = url ?: address
                                 loading = true
                             }
 
@@ -160,7 +115,6 @@ fun RoseyWebViewOverlay(
                                 view: WebView?,
                                 url: String?
                             ) {
-                                address = url ?: address
                                 loading = false
                                 canGoBack = view?.canGoBack() ?: false
                                 canGoForward = view?.canGoForward() ?: false
@@ -184,6 +138,7 @@ fun RoseyWebViewOverlay(
                 update = {}
             )
         }
+    }
     }
 
     DisposableEffect(Unit) {
