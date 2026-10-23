@@ -90,6 +90,7 @@ import com.movtery.zalithlauncher.terracotta.Terracotta
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MenuState
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
+import com.movtery.zalithlauncher.ui.components.RoseyWebViewOverlay
 import com.movtery.zalithlauncher.ui.control.MinecraftHotbar
 import com.movtery.zalithlauncher.ui.control.event.launcherEvent
 import com.movtery.zalithlauncher.ui.control.event.lwjglEvent
@@ -578,6 +579,7 @@ fun GameScreen(
     gamepadViewModel: GamepadViewModel,
 ) {
     val context = LocalContext.current
+    var showRoseyBrowser by remember { mutableStateOf(false) }
     val viewModel = rememberGameViewModel(version) { mode ->
         eventViewModel.sendEvent(EventViewModel.Event.Game.SwitchIme(mode))
     }
@@ -593,9 +595,9 @@ fun GameScreen(
         getUserName = getAccountName
     )
 
-    LaunchedEffect(viewModel.isEditingLayout, viewModel.gameMenuState) {
+    LaunchedEffect(viewModel.isEditingLayout, viewModel.gameMenuState, showRoseyBrowser) {
         //向VMActivity同步状态，编辑控制布局或打开游戏菜单时，不会继续处理按键事件
-        val allowKeyHandle = !viewModel.isEditingLayout && viewModel.gameMenuState != MenuState.SHOW
+        val allowKeyHandle = !viewModel.isEditingLayout && viewModel.gameMenuState != MenuState.SHOW && !showRoseyBrowser
         eventViewModel.sendEvent(EventViewModel.Event.Game.KeyHandle(allowKeyHandle))
     }
 
@@ -777,7 +779,8 @@ fun GameScreen(
             },
             onShowToast = { text, duration ->
                 eventViewModel.sendToast(text, duration)
-            }
+            },
+            onOpenRoseyBrowser = { showRoseyBrowser = true }
         )
 
         if (AllSettings.gamepadControl.state) {
@@ -852,6 +855,12 @@ fun GameScreen(
                 )
             }
         }
+        if (showRoseyBrowser) {
+            RoseyWebViewOverlay(
+                onClose = { showRoseyBrowser = false }
+            )
+        }
+
     }
 
     LaunchedEffect(Unit) {
